@@ -1,6 +1,7 @@
 package main
 
 import (
+	"classifieds/handlers"
 	"context"
 	"log"
 	"net/http"
@@ -9,15 +10,21 @@ import (
 	"time"
 )
 
+var bindAddress = env.String("BIND_ADDRESS", false, ":9090", "Bind address for the server")
+
 func main() {
+
+	env.Parse()
+
 	l := log.New(os.Stdout, "classifieds-api", log.LstdFlags)
+
 	hh := handlers.NewHello(l)
 
 	sm := http.NewServeMux()
 	sm.HandleFunc("/", hh)
 
 	s := http.Server{
-		Addr:         ":9090",
+		Addr:         *bindAddress,
 		Handler:      sm,
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
