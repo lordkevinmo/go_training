@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/nicholasjackson/env"
 )
 
 var bindAddress = env.String("BIND_ADDRESS", false, ":9090", "Bind address for the server")
@@ -18,17 +20,18 @@ func main() {
 
 	l := log.New(os.Stdout, "classifieds-api", log.LstdFlags)
 
-	hh := handlers.NewHello(l)
+	ph := handlers.NewProducts(l)
 
 	sm := http.NewServeMux()
-	sm.HandleFunc("/", hh)
+	sm.Handle("/", ph)
 
 	s := http.Server{
 		Addr:         *bindAddress,
 		Handler:      sm,
+		ErrorLog:     l,
 		IdleTimeout:  120 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	go func() {
@@ -46,7 +49,7 @@ func main() {
 
 	l.Println("Received Terminate, graceful shutdown", sig)
 
-	tc, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctxt, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
-	s.Shutdown(tc)
+	s.Shutdown(ctxt)
 }
